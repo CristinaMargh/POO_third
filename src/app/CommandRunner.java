@@ -14,10 +14,7 @@ import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import fileio.input.CommandInput;
 
-import java.util.ArrayList;
-import java.util.Comparator;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.stream.Collectors;
 
 /**
@@ -930,7 +927,7 @@ public static ObjectNode wrapped(final CommandInput commandInput) {
             ObjectNode topEpisodesNode = objectMapper.createObjectNode();
             List<Episode> topEpisodes = wrapperUser.getTopEpisodes();
             for (Episode episode : topEpisodes)
-                topEpisodesNode.put(episode.getName(), episode.getDuration());
+                topEpisodesNode.put(episode.getName(), episode.getListens());
             resultNode.set("topEpisodes", topEpisodesNode);
         }
     }
@@ -947,11 +944,29 @@ public static ObjectNode wrapped(final CommandInput commandInput) {
             }
 
             ObjectNode topSongsNode = objectMapper.createObjectNode();
+
             List<Song> topSongs = wrapperArtist.getTopSongs();
+            Map<String, Integer> listensMap = new HashMap<>();
+
             for (Song song : topSongs) {
-                if (song.getListens() != 0)
-                    topSongsNode.put(song.getName(), song.getListens());
+                int listens = song.getListens();
+                if (listens != 0) {
+                    listensMap.put(song.getName(), listens);
+                }
             }
+
+            List<Map.Entry<String, Integer>> sortedList = new ArrayList<>(listensMap.entrySet());
+            sortedList.sort((entry1, entry2) -> entry2.getValue().compareTo(entry1.getValue()));
+
+            int count = 0;
+            for (Map.Entry<String, Integer> entry : sortedList) {
+                if (count >= 5) {
+                    break;
+                }
+                topSongsNode.put(entry.getKey(), entry.getValue());
+                count++;
+            }
+
             ArrayNode topFansArray = objectMapper.createArrayNode();
             List<UserAbstract> topFans = wrapperArtist.getTopFans();
 
@@ -965,6 +980,7 @@ public static ObjectNode wrapped(final CommandInput commandInput) {
             break;
         }
     }
+    // wrapped host
     for (Host host : admin.getHosts()) {
         if (host.getUsername().equals(ourUser)) {
             WrapperHost wrapperHost = new WrapperHost();
@@ -972,7 +988,6 @@ public static ObjectNode wrapped(final CommandInput commandInput) {
             ObjectNode topEpisodeNode = objectMapper.createObjectNode();
             List<Episode> topEpisode = wrapperHost.getTopEpisodes();
             for (Episode episode : topEpisode) {
-                if (episode.getListens() != 0)
                     topEpisodeNode.put(episode.getName(), episode.getListens());
             }
             resultNode.set("topEpisodes", topEpisodeNode);
@@ -980,9 +995,40 @@ public static ObjectNode wrapped(final CommandInput commandInput) {
         }
     }
 
+
     objectNode.set("result", resultNode);
     return objectNode;
 }
+    public static ObjectNode buyPremium(CommandInput commandInput){
+        ObjectNode objectNode = objectMapper.createObjectNode();
+        objectNode.put("command", commandInput.getCommand());
+        objectNode.put("user", commandInput.getUsername());
+        objectNode.put("timestamp", commandInput.getTimestamp());
+        User user = admin.getUser(commandInput.getUsername());
+        String message;
+        if (user != null) {
+            message = user.buyPremium();
+        } else {
+            message = "The username " + commandInput.getUsername() + " doesn't exist.";
+        }
+        objectNode.put("message", message);
+        return objectNode;
+    }
+    public static ObjectNode cancelPremium(CommandInput commandInput){
+        ObjectNode objectNode = objectMapper.createObjectNode();
+        objectNode.put("command", commandInput.getCommand());
+        objectNode.put("user", commandInput.getUsername());
+        objectNode.put("timestamp", commandInput.getTimestamp());
+        User user = admin.getUser(commandInput.getUsername());
+        String message;
+        if (user != null) {
+            message = user.cancelPremium();
+        } else {
+            message = "The username " + commandInput.getUsername() + " doesn't exist.";
+        }
+        objectNode.put("message", message);
+        return objectNode;
+    }
 
 
     public static ObjectNode endProgram() {
@@ -1006,6 +1052,5 @@ public static ObjectNode wrapped(final CommandInput commandInput) {
 
     return objectNode;
 }
-
 
 }

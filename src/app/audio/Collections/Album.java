@@ -19,6 +19,8 @@ public final class Album extends AudioCollection {
     private Integer followers;
     private Integer numberOfListens = 0;
     private Integer listeners = 0;
+    private int currentTrackIndex = 0;
+
 
     /**
      * Instantiates a new Album.
@@ -55,4 +57,16 @@ public final class Album extends AudioCollection {
     public boolean containsTrack(final AudioFile track) {
         return songs.contains(track);
     }
+    public AudioFile nextTrack() {
+        if (songs.isEmpty()) {
+            return null;
+        }
+        int currentTrackIndex = getCurrentTrackIndex();
+        int nextTrackIndex = (currentTrackIndex + 1) % songs.size();
+        setCurrentTrackIndex(nextTrackIndex);
+
+        return songs.get(nextTrackIndex);
+    }
+
 }
+

@@ -66,6 +66,8 @@ public final class User extends UserAbstract {
     private LinkedList<Page> history = new LinkedList<>();
     @Getter
     private List<Song> listenedSongs = new ArrayList<>();
+    @Getter
+    private List<Episode> listenedEpisodes = new ArrayList<>();
     /**
      * Instantiates a new User.
      *
@@ -94,10 +96,6 @@ public final class User extends UserAbstract {
     public String userType() {
         return "user";
     }
-//    public void updateNotification(final List<Notification> notificationUpdate){
-//        notifications = notificationUpdate;
-//    }
-
     /**
      * Search array list.
      *
@@ -209,22 +207,57 @@ public final class User extends UserAbstract {
                 }
             }
         }
+        Album album = null;
+        if (searchBar.getLastSearchType().equals("album")) {
+           album = (Album)player.getSource().getAudioCollection();
+                player.getSource().updateAudioFile();
+               album.setNumberOfListens(album.getNumberOfListens() + 1);
+            for (Song song1 : album.getSongs()) {
+                song1.setListens(song1.getListens() + 1);
+            }
+        }
 
         // Used for changePage
         Podcast podcast = null;
         if (searchBar.getLastSearchType().equals("podcast")) {
             podcast = (Podcast) player.getSource().getAudioCollection();
-            for (Host host : Admin.getInstance().getHosts())
-                if (host.getUsername().equals(podcast.getOwner()))
+
+            // Iterate through all hosts
+            for (Host host : Admin.getInstance().getHosts()) {
+                // find the host which has the podcast
+                if (host.getUsername().equals(podcast.getOwner())) {
                     hostPage = host.getPage();
-            for (Episode episode : podcast.getEpisodes()){
-                if (episode!= null &&   episode.getName().equals(player.getSource().getAudioFile().getName())){
-                    episode.setListens(episode.getListens() + 1);
-                    break;
+                    int duration = 0;
+
+                    // total duration of the podcast's episodes
+                    for (Episode episode : podcast.getEpisodes()) {
+                        duration += episode.getDuration();
+
+                        // listens for the current episode
+                        if ( episode.getName().equals(player.getSource().getAudioFile().getName())) {
+                            getListenedEpisodes().add(episode);
+                            episode.setListens(episode.getListens() + 1);
+                            break;
+                        }
+                    }
+                    // Calculate for the rest episodes
+                    int remain = duration - this.getPlayerStats().getRemainedTime();
+                    int total = 0;
+
+                    for (Episode episode : podcast.getEpisodes()) {
+                        // check not to go over the total time
+                        if (episode.getDuration() + total <= remain) {
+                            // sets for host and episodes
+                            episode.setListens(episode.getListens() + 1);
+                            host.getListenedEpisodes().add(episode);
+                            total += episode.getDuration();
+                        } else {
+                            break; //over the time limit
+                        }
+                    }
                 }
             }
         }
-
         searchBar.clearSelection();
 
         player.pause();
@@ -748,8 +781,14 @@ public final class User extends UserAbstract {
                     currentSong = song;
                     playlistsRecommendationName.add(currentSong.getArtist() + " Fan Club recommendations");
                 }
-            //playlistsRecommendationName.add(currentSong.getArtist() + " Fan Club recommendations");
         }
         return "The recommendations for user " + this.getUsername()+ " have been updated successfully.";
     }
+    public String buyPremium() {
+        return  this.getUsername() + " bought the subscription successfully.";
+    }
+    public String cancelPremium() {
+        return  this.getUsername() + " cancelled the subscription successfully.";
+    }
+
 }

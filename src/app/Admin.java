@@ -92,6 +92,12 @@ public final class Admin {
                     songInput.getReleaseYear(), songInput.getArtist()));
         }
     }
+    public List<Episode> getAllEpisodes(){
+        List<Episode> all = new ArrayList<>();
+        for(Host host : hosts)
+            all.addAll(host.getAllEpisodes());
+        return all;
+    }
 
     /**
      * Sets podcasts.
@@ -393,78 +399,6 @@ public final class Admin {
         // I iterate through all user and if one of them is following
         // this artist I have to notify him
 
-//        for (User user : users) {
-//            List<Notification> notifications = new ArrayList<>(user.getNotifications());
-//            Set<String> addedAlbums = new HashSet<>();
-//
-//            for (ContentCreator contentCreator : user.getCreators()) {
-//
-//                if (username.equals(contentCreator.getUsername()) && contentCreator.userType().equals("artist")) {
-//                    Artist artist = (Artist) contentCreator;
-//
-//                    List<Album> newAlbums = artist.getNewAlbums();
-//                    for (Album album : newAlbums) {
-//                        String Name = album.getName();
-//                        if (!addedAlbums.contains(Name)) {
-//                            Notification newNotification = new Notification("New Album",
-//                                    "New Album from " + contentCreator.getUsername() + ".");
-//                            notifications.add(newNotification);
-//                            addedAlbums.add(Name);
-//                        }
-//                    }
-//                    newAlbums.clear();
-//                }
-//            }
-//            user.updateNotification(notifications);
-//        }
-//        for (Artist artist : artists) {
-//            List<Notification> notifications = new ArrayList<>(artist.getNotifications());
-//            Set<String> addedAlbums = new HashSet<>();
-//
-//            for (ContentCreator contentCreator : artist.getCreators()) {
-//                if (username.equals(contentCreator.getUsername()) && contentCreator.userType().equals("artist")) {
-//                    Artist artist1 = (Artist) contentCreator;
-//
-//                    List<Album> newAlbums = artist1.getNewAlbums();
-//
-//                    for (Album album : newAlbums) {
-//                        String Name = album.getName();
-//                        if (!addedAlbums.contains(Name)) {
-//                            Notification newNotification = new Notification("New Album",
-//                                    "New Album from " + contentCreator.getUsername() + ".");
-//                            notifications.add(newNotification);
-//                            addedAlbums.add(Name);
-//                        }
-//                    }
-//                    newAlbums.clear();
-//                }
-//            }
-//            artist.updateNotification(notifications);
-//        }
-//        for (Host host : hosts) {
-//            List<Notification> notifications = new ArrayList<>(host.getNotifications());
-//            Set<String> addedAlbums = new HashSet<>();
-//
-//            for (ContentCreator contentCreator : host.getCreators()) {
-//                if (username.equals(contentCreator.getUsername()) && contentCreator.userType().equals("artist")) {
-//                    Artist artist1 = (Artist) contentCreator;
-//
-//                    List<Album> newAlbums = artist1.getNewAlbums();
-//
-//                    for (Album album : newAlbums) {
-//                        String Name = album.getName();
-//                        if (!addedAlbums.contains(Name)) {
-//                            Notification newNotification = new Notification("New Album",
-//                                    "New Album from " + contentCreator.getUsername() + ".");
-//                            notifications.add(newNotification);
-//                            addedAlbums.add(Name);
-//                        }
-//                    }
-//                    newAlbums.clear();
-//                }
-//            }
-//            host.updateNotification(notifications);
-//        }
         for (User user : users) {
             List<Notification> notifications = user.getNotifications();
             for (ContentCreator contentCreator : user.getCreators()) {

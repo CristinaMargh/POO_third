@@ -211,7 +211,7 @@ public class PlayerSource {
         }
     }
 
-    private void updateAudioFile() {
+   public void updateAudioFile() {
         setAudioFile(audioCollection.getTrackByIndex(index));
     }
 

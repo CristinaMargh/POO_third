@@ -1,5 +1,6 @@
 package app.user;
 
+import app.audio.Files.Episode;
 import lombok.Getter;
 import lombok.Setter;
 
@@ -18,6 +19,7 @@ public abstract class UserAbstract {
     @Setter
     @Getter
     private List<Notification> notifications = new ArrayList<>();
+
     public void updateNotification(final List<Notification> notificationUpdate){
         notifications = notificationUpdate;
     }

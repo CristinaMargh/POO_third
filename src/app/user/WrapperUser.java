@@ -17,6 +17,6 @@ public class WrapperUser {
     List<Episode> topEpisodes = new ArrayList<>();
     public void wrapperUser(User user) {
         this.topSongs = user.getListenedSongs();
-
+        this.topEpisodes = user.getListenedEpisodes();
     }
 }
