@@ -3,3 +3,4 @@
 
 I used the official implementation for the first 2 stages of the project.
 
+In the implementation I used the following Command Patterns
