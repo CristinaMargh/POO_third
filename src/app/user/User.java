@@ -63,6 +63,9 @@ public final class User extends UserAbstract {
     @Setter
     private List<Page> pages = new ArrayList<>();
     @Getter
+    @Setter
+    private Integer currentIndex = 0;
+    @Getter
     private LinkedList<Page> history = new LinkedList<>();
     @Getter
     private List<Song> listenedSongs = new ArrayList<>();
@@ -90,6 +93,18 @@ public final class User extends UserAbstract {
         pages.add(homePage);
         history.push(homePage);
         likedContentPage = new LikedContentPage(this);
+    }
+    public void nextPage(){
+        if (currentIndex < pages.size() - 1) {
+            currentIndex++;
+            currentPage = pages.get(currentIndex);
+        }
+    }
+    public void previousPage(){
+        if (currentIndex > 0) {
+            currentIndex--;
+            currentPage = pages.get(currentIndex);
+        }
     }
 
     @Override
@@ -194,7 +209,8 @@ public final class User extends UserAbstract {
                 song.setListens(song.getListens() + 1);
 
             for (Artist artist : Admin.getInstance().getArtists()) {
-                if (song != null && artist.getUsername().equals(song.getArtist())  && !artist.getFans().contains(this)) {
+                if (song != null && artist.getUsername().equals(song.getArtist())
+                        && !artist.getFans().contains(this)) {
                     artist.setLoadsNumber(artist.getLoadsNumber() + 1);
                     artist.getFans().add(this);
                     artistPage = artist.getPage();
@@ -209,7 +225,7 @@ public final class User extends UserAbstract {
         }
         Album album = null;
         if (searchBar.getLastSearchType().equals("album")) {
-           album = (Album)player.getSource().getAudioCollection();
+           album = (Album) player.getSource().getAudioCollection();
                 player.getSource().updateAudioFile();
                album.setNumberOfListens(album.getNumberOfListens() + 1);
             for (Song song1 : album.getSongs()) {
@@ -234,7 +250,7 @@ public final class User extends UserAbstract {
                         duration += episode.getDuration();
 
                         // listens for the current episode
-                        if ( episode.getName().equals(player.getSource().getAudioFile().getName())) {
+                        if (episode.getName().equals(player.getSource().getAudioFile().getName())) {
                             getListenedEpisodes().add(episode);
                             episode.setListens(episode.getListens() + 1);
                             break;
@@ -714,15 +730,14 @@ public final class User extends UserAbstract {
                 getCreators().add(selection);
                 return userAbstract.getUsername() + " subscribed to " + selection.getUsername() + " successfully.";
             }
-        } else if(!searchBar.getLastSearchType().equals("artist") && !searchBar.getLastSearchType().equals("host")) {
+        } else if (!searchBar.getLastSearchType().equals("artist") && !searchBar.getLastSearchType().equals("host")) {
             return "You can subscribe only to artists and hosts.";
         }
-
         return "To subscribe you need to be on the page of an artist or host.";
     }
     public String buyMerch(CommandInput commandInput) {
         ContentCreator selection = searchBar.getLastContentCreatorSelected();
-        if((!searchBar.getLastSearchType().equals("artist")))
+        if ((!searchBar.getLastSearchType().equals("artist")))
             return "Cannot buy merch from this page.";
         Artist currentArtist = (Artist) selection;
         Optional<Merchandise> matchingMerch = currentArtist.getMerch().stream()
@@ -772,12 +787,12 @@ public final class User extends UserAbstract {
                     }
                 }
             }
-        } else if(commandInput.getRecommendationType().equals("random_playlist")) {
+        } else if (commandInput.getRecommendationType().equals("random_playlist")) {
             playlistsRecommendationName.add(getUsername() +"'s recommendations");
-        } else if(commandInput.getRecommendationType().equals("fans_playlist")) {
+        } else if (commandInput.getRecommendationType().equals("fans_playlist")) {
             Song currentSong = null;
-            for(Song song : Admin.getInstance().getSongs())
-                if(song.getName().equals(this.getPlayer().getSource().getAudioFile().getName())) {
+            for (Song song : Admin.getInstance().getSongs())
+                if (song.getName().equals(this.getPlayer().getSource().getAudioFile().getName())) {
                     currentSong = song;
                     playlistsRecommendationName.add(currentSong.getArtist() + " Fan Club recommendations");
                 }
@@ -785,10 +800,19 @@ public final class User extends UserAbstract {
         return "The recommendations for user " + this.getUsername()+ " have been updated successfully.";
     }
     public String buyPremium() {
-        return  this.getUsername() + " bought the subscription successfully.";
+        List<User> premiumUsers = Admin.getInstance().getPremiumUsers();
+        if (premiumUsers.contains(this)) {
+            return this.getUsername() + " is already a premium user.";
+        } else {
+            premiumUsers.add(this);
+            return this.getUsername() + " bought the subscription successfully.";
+        }
     }
+
     public String cancelPremium() {
+    if (Admin.getInstance().getPremiumUsers().contains(this))
         return  this.getUsername() + " cancelled the subscription successfully.";
+    else return this.getUsername() + " is not a premium user.";
     }
 
 }

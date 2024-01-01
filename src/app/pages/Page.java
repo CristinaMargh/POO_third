@@ -11,8 +11,4 @@ public interface Page {
      */
     String printCurrentPage();
 
-    void changePage(Page page);
-    void nextPage();
-    void previousPage();
-
 }

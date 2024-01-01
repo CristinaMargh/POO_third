@@ -46,20 +46,4 @@ public final class LikedContentPage implements Page {
         nextPage = page;
     }
 
-    public void nextPage() {
-        if (nextPage != null) {
-            System.out.println("The user " +  username + " has navigated successfully to the next page.");
-
-        } else {
-            System.out.println("There are no pages left to go forward.");
-        }
-    }
-
-    public void previousPage() {
-        if (previousPage != null) {
-            System.out.println("The user" +  username + " has navigated successfully to the previous page.");
-        } else {
-            System.out.println("There are no pages left to go back.");
-        }
-    }
 }

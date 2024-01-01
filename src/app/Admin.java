@@ -7,7 +7,10 @@ import app.audio.Collections.Podcast;
 import app.audio.Files.AudioFile;
 import app.audio.Files.Episode;
 import app.audio.Files.Song;
+import app.pages.Command;
+import app.pages.NextPage;
 import app.pages.Page;
+import app.pages.PreviousPage;
 import app.player.Player;
 import app.user.*;
 import app.user.Notification;
@@ -33,6 +36,8 @@ public final class Admin {
     private List<Artist> artists = new ArrayList<>();
     @Getter
     private List<Host> hosts = new ArrayList<>();
+    @Getter
+    private List<User> premiumUsers = new ArrayList<>();
     private List<Song> songs = new ArrayList<>();
     private List<Podcast> podcasts = new ArrayList<>();
     private int timestamp = 0;
@@ -772,7 +777,7 @@ public final class Admin {
                 return "%s is trying to access a non-existent page.".formatted(username);
         }
         user.getPages().add(user.getCurrentPage());
-        //user.getHistory().push(user.getCurrentPage());
+        user.setCurrentIndex(user.getPages().size() - 1);
         user.getHistory().add(user.getCurrentPage());
         return "%s accessed %s successfully.".formatted(username, nextPage);
     }
@@ -782,13 +787,16 @@ public String previousPage(CommandInput commandInput) {
     UserAbstract currentUser = getAbstractUser(username);
     User user = (User) currentUser;
 
-    //int currentIndex = user.getPages().indexOf(user.getCurrentPage());
-    int currentIndex = user.getHistory().lastIndexOf(user.getCurrentPage());
-    if (currentIndex <= 0) {
+//    int currentIndex = user.getHistory().lastIndexOf(user.getCurrentPage());
+//    if (currentIndex <= 0) {
+//        return "There are no pages left to go back.";
+//    }
+//
+//    user.setCurrentPage(user.getPages().get(currentIndex - 1));
+    if (user.getCurrentIndex() <= 0)
         return "There are no pages left to go back.";
-    }
-
-    user.setCurrentPage(user.getPages().get(currentIndex - 1));
+    Command previousCommand = new PreviousPage(user);
+    previousCommand.execute();
     return "The user " + username + " has navigated successfully to the previous page.";
 }
 
@@ -797,12 +805,16 @@ public String previousPage(CommandInput commandInput) {
         UserAbstract currentUser = getAbstractUser(username);
         User user = (User) currentUser;
 
-        //int currentIndex = user.getPages().indexOf(user.getCurrentPage());
-        int currentIndex = user.getHistory().lastIndexOf(user.getCurrentPage());
-        if (currentIndex >= user.getPages().size() - 1) {
+//        int currentIndex = user.getHistory().lastIndexOf(user.getCurrentPage());
+//        if (currentIndex >= user.getPages().size() - 1) {
+//            return "There are no pages left to go forward.";
+//        }
+//        user.setCurrentPage(user.getPages().get(currentIndex + 1));
+        if(user.getCurrentIndex() >= user.getPages().size() - 1)
             return "There are no pages left to go forward.";
-        }
-        user.setCurrentPage(user.getPages().get(currentIndex + 1));
+        Command nextCommand = new NextPage(user);
+        nextCommand.execute();
+
         return "The user " + username + " has navigated successfully to the next page.";
     }
 

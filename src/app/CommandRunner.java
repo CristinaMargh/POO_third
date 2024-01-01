@@ -994,8 +994,6 @@ public static ObjectNode wrapped(final CommandInput commandInput) {
             resultNode.put("listeners", 1);
         }
     }
-
-
     objectNode.set("result", resultNode);
     return objectNode;
 }
@@ -1052,5 +1050,4 @@ public static ObjectNode wrapped(final CommandInput commandInput) {
 
     return objectNode;
 }
-
 }
