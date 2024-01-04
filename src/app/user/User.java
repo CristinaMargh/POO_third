@@ -71,6 +71,9 @@ public final class User extends UserAbstract {
     private List<Song> listenedSongs = new ArrayList<>();
     @Getter
     private List<Episode> listenedEpisodes = new ArrayList<>();
+    @Getter
+    @Setter
+    private int time = 0;
     /**
      * Instantiates a new User.
      *
@@ -118,8 +121,49 @@ public final class User extends UserAbstract {
      * @param type    the type
      * @return the array list
      */
-    public ArrayList<String> search(final Filters filters, final String type) {
+    public ArrayList<String> search(final Filters filters, final String type, CommandInput commandInput) {
         searchBar.clearSelection();
+
+        Podcast podcast = null;
+        if (player.getSource() != null && player.getType().equals("podcast")) {
+            podcast = (Podcast) player.getCurrentAudioCollection();
+
+            for (Episode episode : podcast.getEpisodes()) {
+                // listens for the current episode
+                if (player.getCurrentAudioFile() != null
+                        && episode.getName().equals(player.getCurrentAudioFile().getName())) {
+                    episode.setListens(episode.getListens() + 1);
+                    getListenedEpisodes().add(episode);
+                    for(Episode episode1 : podcast.getEpisodes()){
+                        if(!episode1.equals(episode))
+                            episode1.setListens(episode1.getListens()+1);
+                        else break;
+                    }
+                }
+            }
+
+            // Iterate through all hosts
+            for (Host host : Admin.getInstance().getHosts()) {
+                // find the host which has the podcast
+                if (host.getUsername().equals(podcast.getOwner())) {
+                    // Calculate for the rest episodes
+                    int remain = commandInput.getTimestamp() - time;
+                    int total = 0;
+
+                    for (Episode episode : podcast.getEpisodes()) {
+                        // check not to go over the total time
+                        if (total <= remain) {
+                            // sets for host and episodes
+                            host.getListenedEpisodes().add(episode);
+                            total += episode.getDuration();
+                        } else {
+                            break; //over the time limit
+                        }
+                    }
+                }
+            }
+        }
+
         player.stop();
 
         lastSearched = true;
@@ -139,6 +183,7 @@ public final class User extends UserAbstract {
                 results.add(libraryEntry.getName());
             }
         }
+
         return results;
     }
 
@@ -186,7 +231,7 @@ public final class User extends UserAbstract {
      *
      * @return the string
      */
-    public String load() {
+    public String load(CommandInput commandInput) {
         if (!status) {
             return "%s is offline.".formatted(getUsername());
         }
@@ -225,17 +270,17 @@ public final class User extends UserAbstract {
         }
         Album album = null;
         if (searchBar.getLastSearchType().equals("album")) {
-           album = (Album) player.getSource().getAudioCollection();
-                player.getSource().updateAudioFile();
-               album.setNumberOfListens(album.getNumberOfListens() + 1);
-            for (Song song1 : album.getSongs()) {
-                song1.setListens(song1.getListens() + 1);
-            }
-        }
 
+                album = (Album) player.getSource().getAudioCollection();
+                album.setNumberOfListens(album.getNumberOfListens() + 1);
+                for (Song song1 : album.getSongs()) {
+                    song1.setListens(song1.getListens() + 1);
+                }
+        }
         // Used for changePage
-        Podcast podcast = null;
+       Podcast podcast = null;
         if (searchBar.getLastSearchType().equals("podcast")) {
+
             podcast = (Podcast) player.getSource().getAudioCollection();
 
             // Iterate through all hosts
@@ -243,38 +288,12 @@ public final class User extends UserAbstract {
                 // find the host which has the podcast
                 if (host.getUsername().equals(podcast.getOwner())) {
                     hostPage = host.getPage();
-                    int duration = 0;
-
-                    // total duration of the podcast's episodes
-                    for (Episode episode : podcast.getEpisodes()) {
-                        duration += episode.getDuration();
-
-                        // listens for the current episode
-                        if (episode.getName().equals(player.getSource().getAudioFile().getName())) {
-                            getListenedEpisodes().add(episode);
-                            episode.setListens(episode.getListens() + 1);
-                            break;
-                        }
-                    }
-                    // Calculate for the rest episodes
-                    int remain = duration - this.getPlayerStats().getRemainedTime();
-                    int total = 0;
-
-                    for (Episode episode : podcast.getEpisodes()) {
-                        // check not to go over the total time
-                        if (episode.getDuration() + total <= remain) {
-                            // sets for host and episodes
-                            episode.setListens(episode.getListens() + 1);
-                            host.getListenedEpisodes().add(episode);
-                            total += episode.getDuration();
-                        } else {
-                            break; //over the time limit
-                        }
-                    }
                 }
             }
         }
         searchBar.clearSelection();
+
+        setTime(commandInput.getTimestamp());
 
         player.pause();
 

@@ -183,7 +183,6 @@ public final class Player {
             }
         }
     }
-
     /**
      * Next.
      */

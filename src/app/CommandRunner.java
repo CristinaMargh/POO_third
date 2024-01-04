@@ -51,7 +51,7 @@ public final class CommandRunner {
         String message = "%s is offline.".formatted(user.getUsername());
 
         if (user.isStatus()) {
-            results = user.search(filters, type);
+            results = user.search(filters, type, commandInput);
             message = "Search returned " + results.size() + " results";
         }
 
@@ -93,7 +93,7 @@ public final class CommandRunner {
      */
     public static ObjectNode load(final CommandInput commandInput) {
         User user = admin.getUser(commandInput.getUsername());
-        String message = user.load();
+        String message = user.load(commandInput);
 
         ObjectNode objectNode = objectMapper.createObjectNode();
         objectNode.put("command", commandInput.getCommand());
@@ -988,7 +988,8 @@ public static ObjectNode wrapped(final CommandInput commandInput) {
             ObjectNode topEpisodeNode = objectMapper.createObjectNode();
             List<Episode> topEpisode = wrapperHost.getTopEpisodes();
             for (Episode episode : topEpisode) {
-                    topEpisodeNode.put(episode.getName(), episode.getListens());
+                    if(episode.getListens()!=0)
+                        topEpisodeNode.put(episode.getName(), episode.getListens());
             }
             resultNode.set("topEpisodes", topEpisodeNode);
             resultNode.put("listeners", 1);

@@ -3,4 +3,6 @@
 
 I used the official implementation for the first 2 stages of the project.
 
-In the implementation I used the following Command Patterns
+In the implementation I used the following design patterns:
+-SingleTon 
+-Command Pattern for the page navigation system.
