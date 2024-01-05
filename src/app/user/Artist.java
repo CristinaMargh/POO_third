@@ -5,6 +5,7 @@ import java.util.List;
 
 import app.audio.Collections.Album;
 import app.audio.Collections.AlbumOutput;
+import app.audio.Files.Episode;
 import app.audio.Files.Song;
 import app.pages.ArtistPage;
 import lombok.Getter;
@@ -34,6 +35,8 @@ public final class Artist extends ContentCreator {
     @Getter
     @Setter
     private List<UserAbstract> fans = new ArrayList<>();
+    @Getter
+    private ArrayList<Song> listenedSongs = new ArrayList<>();
 
 
     /**

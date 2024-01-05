@@ -16,7 +16,10 @@ public class WrapperUser {
     List<Album> topAlbums = new ArrayList<>();
     List<Episode> topEpisodes = new ArrayList<>();
     public void wrapperUser(User user) {
+        this.topGenre = user.getTopGenre();
+        this.topArtist = user.getTopArtists();
         this.topSongs = user.getListenedSongs();
         this.topEpisodes = user.getListenedEpisodes();
+        this.topAlbums = user.getTopAlbums();
     }
 }

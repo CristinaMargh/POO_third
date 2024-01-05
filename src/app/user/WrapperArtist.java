@@ -14,7 +14,7 @@ public class WrapperArtist {
     List<UserAbstract> topFans = new ArrayList<>();
     public void wrapperArtist(Artist artist) {
         this.topAlbums = artist.getAlbums();
-        this.topSongs = artist.getAllSongs();
+        this.topSongs = artist.getListenedSongs();
         this.topFans = artist.getFans();
     }
 }
