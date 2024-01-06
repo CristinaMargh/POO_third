@@ -148,7 +148,7 @@ public final class Main {
                 case "nextPage" -> outputs.add(CommandRunner.nextPage(command));
                 case "buyPremium" -> outputs.add(CommandRunner.buyPremium(command));
                 case "cancelPremium" ->outputs.add(CommandRunner.cancelPremium(command));
-                //default -> System.out.println("Invalid command " + commandName);
+                default -> System.out.println("Invalid command " + commandName);
             }
         }
         outputs.add(CommandRunner.endProgram());

@@ -909,22 +909,34 @@ public static ObjectNode wrapped(final CommandInput commandInput) {
             wrapperUser.wrapperUser(user);
 
             ObjectNode topArtistsNode = objectMapper.createObjectNode();
-            List<Artist> topArtistsUser = wrapperUser.getTopArtist();
+            List<Artist> topArtists = wrapperUser.getTopArtist();
             int loads = 0;
-            for (Artist artist : topArtistsUser) {
+            topArtists.sort(Comparator
+                    .comparingInt(Artist::getLoadsNumber)
+                    .reversed()
+                    .thenComparing(Artist::getUsername));
+
+            int countArtists = Math.min(5, topArtists.size());
+
+            for (int i = 0; i < countArtists; i++) {
+                Artist artist = topArtists.get(i);
                 if (artist.getLoadsNumber() != 0) {
                     check = 1;
-                    loads = artist.getLoadsNumber() -1;
-                    // minus one because we added in load
+                    loads = artist.getLoadsNumber() - 1;
                     topArtistsNode.put(artist.getUsername(), artist.getLoadsNumber() - 1);
                 }
             }
 
             ObjectNode topGenreNode = objectMapper.createObjectNode();
             List<String> topGenreUser = wrapperUser.getTopGenre();
-            for (String genre : topGenreUser) {
+
+            int countGenres = Math.min(5, topGenreUser.size());
+
+            for (int i = 0; i < countGenres; i++) {
+                String genre = topGenreUser.get(i);
                 topGenreNode.put(genre, loads);
             }
+
 
             ObjectNode topSongsNode = objectMapper.createObjectNode();
             List<Song> topSongs = wrapperUser.getTopSongs();
@@ -1004,12 +1016,22 @@ public static ObjectNode wrapped(final CommandInput commandInput) {
 
             ObjectNode topAlbumsNode = objectMapper.createObjectNode();
             List<Album> topAlbums = wrapperArtist.getTopAlbums();
-            topAlbums.sort(Comparator.comparingInt(Album::getNumberOfListens).reversed());
+
+            topAlbums.sort((album1, album2) -> {
+                if (album1.getNumberOfListens() == album2.getNumberOfListens()) {
+                    return album1.getName().compareTo(album2.getName());
+                }
+                return Integer.compare(album2.getNumberOfListens(), album1.getNumberOfListens());
+            });
+
+            int countAlbums = 0;
             for (Album album : topAlbums) {
-                if (album.getNumberOfListens() != 0) {
+                if (album.getNumberOfListens() != 0 && countAlbums < 5) {
                     topAlbumsNode.put(album.getName(), album.getNumberOfListens());
+                    countAlbums++;
                 }
             }
+
 
             ObjectNode topSongsNode = objectMapper.createObjectNode();
             List<Song> topSongs = wrapperArtist.getTopSongs();

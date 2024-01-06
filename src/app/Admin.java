@@ -7,10 +7,7 @@ import app.audio.Collections.Podcast;
 import app.audio.Files.AudioFile;
 import app.audio.Files.Episode;
 import app.audio.Files.Song;
-import app.pages.Command;
-import app.pages.NextPage;
-import app.pages.Page;
-import app.pages.PreviousPage;
+import app.pages.*;
 import app.player.Player;
 import app.user.*;
 import app.user.Notification;
@@ -25,6 +22,8 @@ import lombok.Setter;
 import java.util.*;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
+
+import static app.pages.PageFactory.PageType.*;
 
 /**
  * The type Admin.
@@ -760,22 +759,45 @@ public final class Admin {
         if (!user.isStatus()) {
             return "%s is offline.".formatted(user.getUsername());
         }
+//        switch (nextPage) {
+//            case "Home" :
+//                user.setCurrentPage(user.getHomePage());
+//                break;
+//            case "LikedContent" :
+//                user.setCurrentPage(user.getLikedContentPage());
+//                break;
+//            case "Artist" :
+//                user.setCurrentPage(user.getArtistPage());
+//                break;
+//            case "Host" :
+//                user.setCurrentPage(user.getHostPage());
+//                break;
+//            default :
+//                return "%s is trying to access a non-existent page.".formatted(username);
+//        }
+        PageFactory pageFactory = new PageFactory();
+
         switch (nextPage) {
             case "Home" :
-                user.setCurrentPage(user.getHomePage());
+                HomePage homePage = (HomePage) PageFactory.createPage(HOME, user);
+                user.setCurrentPage(homePage);
                 break;
             case "LikedContent" :
-                user.setCurrentPage(user.getLikedContentPage());
+                LikedContentPage likedContentPage = (LikedContentPage) PageFactory.createPage(LIKE, user);
+                user.setCurrentPage(likedContentPage);
                 break;
             case "Artist" :
-                user.setCurrentPage(user.getArtistPage());
+                ArtistPage artistPage = (ArtistPage) PageFactory.createPage(ARTIST, user.getArtisName());
+                user.setCurrentPage(artistPage);
                 break;
             case "Host" :
-                user.setCurrentPage(user.getHostPage());
+               HostPage hostPage = (HostPage) PageFactory.createPage(HOST, user.getHostName());
+                user.setCurrentPage(hostPage);
                 break;
             default :
                 return "%s is trying to access a non-existent page.".formatted(username);
         }
+
         user.getPages().add(user.getCurrentPage());
         user.setCurrentIndex(user.getPages().size() - 1);
         user.getHistory().add(user.getCurrentPage());

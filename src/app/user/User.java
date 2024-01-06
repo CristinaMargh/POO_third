@@ -52,8 +52,12 @@ public final class User extends UserAbstract {
     @Setter
     private Page artistPage;
     @Getter
+    private Artist artisName;
+    @Getter
     @Setter
     private Page hostPage;
+    @Getter
+    private Host hostName;
     private List<Song> songsSameGenre = new ArrayList<>();
     private List<Merchandise> boughtMerch = new ArrayList<>();
     @Getter
@@ -71,6 +75,7 @@ public final class User extends UserAbstract {
     @Getter
     private LinkedList<Page> history = new LinkedList<>();
     @Getter
+    @Setter
     private List<Song> listenedSongs = new ArrayList<>();
     @Getter
     private List<Episode> listenedEpisodes = new ArrayList<>();
@@ -106,6 +111,10 @@ public final class User extends UserAbstract {
         history.push(homePage);
         likedContentPage = new LikedContentPage(this);
     }
+    @Getter
+    @Setter
+    private PageFactory currentPageFactory;
+
     public void nextPage(){
         if (currentIndex < pages.size() - 1) {
             currentIndex++;
@@ -197,21 +206,41 @@ public final class User extends UserAbstract {
 
         return results;
     }
-    public void listening(CommandInput commandInput){
+    public void listening(CommandInput commandInput) {
         Song songSearched = null;
         if (copy != null && copy.getSource() != null && copy.getType().equals("song")) {
             songSearched = (Song) copy.getCurrentAudioFile();
+
+            Song existingSong = null;
+            for (Song listenedSong : getListenedSongs()) {
+                if (listenedSong.getName().equals(songSearched.getName())
+                        && !listenedSong.getAlbum().equals(songSearched.getAlbum())
+                ) {
+                    existingSong = listenedSong;
+                    break;
+                }
+            }
+
+            if (existingSong != null) {
+                existingSong.setListens(existingSong.getListens() + 1);
+            } else {
+                getListenedSongs().add(songSearched);
+            }
+
+
             if (copy.getCurrentAudioFile() != null) {
                 // genre
                 topGenre.add(songSearched.getGenre());
                 // song
                 songSearched.setListens(songSearched.getListens() + 1);
                 getListenedSongs().add(songSearched);
+
                 // Artist and album loads
                 for (Artist artist : Admin.getInstance().getArtists()) {
                     if (songSearched.getArtist().equals(artist.getUsername())) {
                         for (Album album : artist.getAlbums()) {
                             if (songSearched.matchesAlbum(album.getName())) {
+                                artist.getListenedSongs().add(songSearched);
                                 album.setNumberOfListens(album.getNumberOfListens() + 1);
                                 artist.setLoadsNumber(artist.getLoadsNumber() + 1);
                             }
@@ -220,6 +249,7 @@ public final class User extends UserAbstract {
                 }
             }
         }
+
         Album album = null;
         if (copy != null && copy.getSource() != null && copy.getType().equals("album")) {
             album = (Album) copy.getCurrentAudioCollection();
@@ -229,6 +259,7 @@ public final class User extends UserAbstract {
                     // listens for the current song
                     if (copy.getCurrentAudioFile() != null
                             && song.getName().equals(copy.getCurrentAudioFile().getName())) {
+
                         song.setListens(song.getListens() + 1);
                         getListenedSongs().add(song);
                         for (Artist artist : Admin.getInstance().getArtists()) {
@@ -245,32 +276,47 @@ public final class User extends UserAbstract {
                         }
                     }
                 }
-        }
+            // Iterate through all artists
+            for (Artist artist : Admin.getInstance().getArtists()) {
+                // find the artist which has the album
+                if (album != null && artist.getUsername().equals(album.getOwner())) {
+                    // Calculate for the rest of songs
+                    int remain = commandInput.getTimestamp() - time;
+                    int total = 0;
 
-        // Iterate through all artists
-        for (Artist artist : Admin.getInstance().getArtists()) {
-            // find the artist which has the album
-            if (album != null && artist.getUsername().equals(album.getOwner())) {
-                // Calculate for the rest of songs
-                int remain = commandInput.getTimestamp() - time;
-                int total = 0;
+                    for (Song song : album.getSongs()) {
 
-                for (Song song : album.getSongs()) {
-                    // check not to go over the total time
-                    if (total  <= remain) {
-                        // sets for artist
-                        artist.getListenedSongs().add(song);
-                        getListenedSongs().add(song);
-                        artist.setLoadsNumber(artist.getLoadsNumber() + 1);
-                        album.setNumberOfListens(album.getNumberOfListens() + 1);
-                        total += song.getDuration();
-                    } else {
-                        break; //over the time limit
+                        // check not to go over the total time
+                        if (total <= remain) {
+                            Song existingSong = null;
+                            for (Song listenedSong : getListenedSongs()) {
+                                if (listenedSong.getName().equals(song.getName())
+                                        && !listenedSong.getAlbum().equals(song.getAlbum())
+                                    //&& !listenedSong.getGenre().equals(song.getGenre()) && !listenedSong.getTags().equals(song.getTags())
+                                ) {
+                                    existingSong = listenedSong;
+                                    break;
+                                }
+                            }
+
+                            if (existingSong != null) {
+                                existingSong.setListens(existingSong.getListens() + 1);
+                            } else {
+                                getListenedSongs().add(song);
+                            }
+                            // sets for artist
+                            artist.getListenedSongs().add(song);
+                            getListenedSongs().add(song);
+                            artist.setLoadsNumber(artist.getLoadsNumber() + 1);
+                            album.setNumberOfListens(album.getNumberOfListens() + 1);
+                            total += song.getDuration();
+                        } else {
+                            break; //over the time limit
+                        }
                     }
                 }
             }
         }
-
     }
 
     /**
@@ -342,6 +388,7 @@ public final class User extends UserAbstract {
                     artist.setLoadsNumber(artist.getLoadsNumber() + 1);
                     artist.getFans().add(this);
                     artistPage = artist.getPage();
+                    artisName = artist;
                     break;
                 }
             }
@@ -357,6 +404,7 @@ public final class User extends UserAbstract {
                 // find the host which has the podcast
                 if (host.getUsername().equals(podcast.getOwner())) {
                     hostPage = host.getPage();
+                    hostName = host;
                 }
             }
         }

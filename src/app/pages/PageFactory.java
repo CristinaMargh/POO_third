@@ -9,9 +9,10 @@ public class PageFactory {
             ARTIST,
             HOST
         }
+        public PageFactory(){}
 
-        public static Page createPage(PageType type, UserAbstract user) {
-            if(type != null)
+        public static  Page createPage(PageType type, UserAbstract user) {
+            if (type != null)
             return switch (type) {
                 case LIKE -> new LikedContentPage((User) user);
                 case HOME -> new HomePage((User) user);

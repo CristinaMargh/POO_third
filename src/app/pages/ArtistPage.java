@@ -17,6 +17,7 @@ public final class ArtistPage implements Page {
     private List<Event> events;
     private Page nextPage;
     private Page previousPage;
+    @Getter
     private String username;
 
     /**
