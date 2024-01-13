@@ -2,12 +2,10 @@ package app.user;
 
 import app.audio.Collections.Podcast;
 import app.audio.Files.Episode;
-import app.audio.Files.Song;
 import app.pages.HostPage;
 import lombok.Getter;
 
 import java.util.ArrayList;
-import java.util.List;
 
 /**
  * The type Host.
@@ -41,13 +39,6 @@ public final class Host extends ContentCreator {
     public ArrayList<Podcast> getPodcasts() {
         return podcasts;
     }
-    public List<Episode> getAllEpisodes() {
-        List<Episode> episodes = new ArrayList<>();
-        podcasts.forEach(podcast -> episodes.addAll(podcast.getEpisodes()));
-
-        return episodes;
-    }
-
 
     /**
      * Sets podcasts.

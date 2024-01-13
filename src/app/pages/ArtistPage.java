@@ -48,7 +48,11 @@ public final class ArtistPage implements Page {
                                  .toList());
     }
 
-    public void changePage(Page page) {
+    /**
+     * Used to change the current page to a new one
+     * @param page the page object to set as the next one
+     */
+    public void changePage(final Page page) {
         nextPage = page;
     }
 

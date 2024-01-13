@@ -2,7 +2,7 @@ package app.pages;
 
 import app.user.User;
 
-public class PreviousPage implements Command {
+public final class PreviousPage implements Command {
 
     private User user;
 

@@ -5,7 +5,6 @@ import lombok.Setter;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Objects;
 
 /**
  * The type Song.
@@ -47,14 +46,6 @@ public final class Song extends AudioFile {
         this.likes = 0;
         this.listens = 0;
     }
-//    @Override
-//    public boolean equals(Object o) {
-//        if (this == o) return true;
-//        if (o == null || getClass() != o.getClass()) return false;
-//
-//        Song song = (Song) o;
-//        return Objects.equals(getName(), song.getName()) && Objects.equals(getArtist(), song.getArtist());
-//    }
 
     @Override
     public boolean matchesAlbum(final String albumName) {

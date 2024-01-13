@@ -7,12 +7,12 @@ public final class CommandInput {
     private String username;
     private Integer timestamp;
     private String type; // song / playlist / podcast / user / artist/ host
-    private FiltersInput filters; // pentru search
-    private Integer itemNumber; // pentru select
-    private Integer repeatMode; // pentru repeat
-    private Integer playlistId; // pentru add/remove song
-    private String playlistName; // pentru create playlist
-    private Integer seed; // pentru shuffle
+    private FiltersInput filters; // search
+    private Integer itemNumber; // select
+    private Integer repeatMode; // repeat
+    private Integer playlistId; // add/remove song
+    private String playlistName; // create playlist
+    private Integer seed; // shuffle
 
     private int age;
     private String city;
@@ -28,10 +28,6 @@ public final class CommandInput {
 
     public String getRecommendationType() {
         return recommendationType;
-    }
-
-    public void setRecommendationType(String recommendationType) {
-        this.recommendationType = recommendationType;
     }
 
     public CommandInput() {

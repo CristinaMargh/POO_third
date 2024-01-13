@@ -4,7 +4,6 @@ import app.audio.Collections.Playlist;
 import app.audio.Files.Song;
 import app.user.User;
 
-import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
 
@@ -18,7 +17,7 @@ public final class HomePage implements Page {
     private List<Playlist> suggestionsPlaylist;
     private final int limit = 5;
     private String username = null;
-    private List<String> playlistRecommendationName ;
+    private List<String> playlistRecommendationName;
     private Page nextPage;
     private Page previousPage;
 
@@ -47,26 +46,15 @@ public final class HomePage implements Page {
                               followedPlaylists.stream().sorted((o1, o2) ->
                                       o2.getSongs().stream().map(Song::getLikes)
                                         .reduce(Integer::sum).orElse(0)
-                                      - o1.getSongs().stream().map(Song::getLikes).reduce(Integer::sum)
-                                      .orElse(0)).limit(limit).map(Playlist::getName)
+                                      - o1.getSongs().stream().map(Song::getLikes)
+                                              .reduce(Integer::sum).orElse(0))
+                                      .limit(limit).map(Playlist::getName)
                               .toList());
         } else {
-            if(playlistRecommendationName.isEmpty())
-                return ("Liked songs:\n\t%s\n\nFollowed playlists:\n\t%s\n\nSong recommendations:\n\t%s\n\nPlaylists" +
-                    " recommendations:\n\t[]")
-                    .formatted(likedSongs.stream()
-                                    .sorted(Comparator.comparing(Song::getLikes)
-                                            .reversed()).limit(limit).map(Song::getName)
-                                    .toList(),
-                            followedPlaylists.stream().sorted((o1, o2) ->
-                                            o2.getSongs().stream().map(Song::getLikes)
-                                                    .reduce(Integer::sum).orElse(0)
-                                                    - o1.getSongs().stream().map(Song::getLikes).reduce(Integer::sum)
-                                                    .orElse(0)).limit(limit).map(Playlist::getName)
-                                    .toList(), suggestions.stream().limit(1).map(Song::getName).sorted().toList());
-            else
-                return ("Liked songs:\n\t%s\n\nFollowed playlists:\n\t%s\n\nSong recommendations:\n\t%s\n\nPlaylists" +
-                        " recommendations:\n\t%s")
+            if (playlistRecommendationName.isEmpty()) {
+                return ("Liked songs:\n\t%s\n\nFollowed playlists:\n\t%s\n\nSong "
+                        + "recommendations:\n\t%s\n\nPlaylists"
+                        + " recommendations:\n\t[]")
                         .formatted(likedSongs.stream()
                                         .sorted(Comparator.comparing(Song::getLikes)
                                                 .reversed()).limit(limit).map(Song::getName)
@@ -74,14 +62,35 @@ public final class HomePage implements Page {
                                 followedPlaylists.stream().sorted((o1, o2) ->
                                                 o2.getSongs().stream().map(Song::getLikes)
                                                         .reduce(Integer::sum).orElse(0)
-                                                        - o1.getSongs().stream().map(Song::getLikes).reduce(Integer::sum)
-                                                        .orElse(0)).limit(limit).map(Playlist::getName)
-                                        .toList(), suggestions.stream().limit(1).map(Song::getName).sorted().toList(),
+                                                        - o1.getSongs().stream().map(Song::getLikes)
+                                                        .reduce(Integer::sum).orElse(0))
+                                        .limit(limit).map(Playlist::getName).toList(),
+                                suggestions.stream()
+                                        .limit(1).map(Song::getName)
+                                        .sorted().toList());
+            } else {
+                return ("Liked songs:\n\t%s\n\nFollowed playlists:\n\t%s\n\nSong "
+                        + "recommendations:\n\t%s\n\nPlaylists recommendations:\n\t%s")
+                        .formatted(likedSongs.stream().sorted(Comparator.comparing(Song::getLikes)
+                                                .reversed()).limit(limit).map(Song::getName)
+                                        .toList(),
+                                followedPlaylists.stream().sorted((o1, o2) -> o2.getSongs()
+                                                .stream().map(Song::getLikes).reduce(Integer::sum)
+                                                .orElse(0) - o1.getSongs().stream()
+                                                .map(Song::getLikes).reduce(Integer::sum)
+                                                .orElse(0)).limit(limit).map(Playlist::getName)
+                                        .toList(),
+                                suggestions.stream().limit(1).map(Song::getName).sorted().toList(),
                                 playlistRecommendationName.stream().limit(1).toList());
+            }
         }
     }
 
-    public void changePage(Page page) {
+    /**
+     * Used to change the page to the one given as parameter
+     * @param page is the page we want to move to
+     */
+    public void changePage(final Page page) {
         nextPage = page;
     }
 

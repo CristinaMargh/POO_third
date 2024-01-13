@@ -4,16 +4,15 @@ import app.audio.Collections.AudioCollection;
 import app.audio.Files.AudioFile;
 import app.utils.Enums;
 import lombok.Getter;
+import lombok.Setter;
 
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
-import java.util.Random;
 
 /**
  * The type Player source.
  */
-public class PlayerSource {
+public final class PlayerSource {
     @Getter
     private Enums.PlayerSourceType type;
     @Getter
@@ -25,6 +24,9 @@ public class PlayerSource {
     private int indexShuffled;
     private int remainedDuration;
     private final List<Integer> indices = new ArrayList<>();
+    @Setter
+    private ShuffleStrategy shuffleStrategy;
+
 
     /**
      * Instantiates a new Player source.
@@ -175,12 +177,8 @@ public class PlayerSource {
      * @param seed the seed
      */
     public void generateShuffleOrder(final Integer seed) {
-        indices.clear();
-        Random random = new Random(seed);
-        for (int i = 0; i < audioCollection.getNumberOfTracks(); i++) {
-            indices.add(i);
-        }
-        Collections.shuffle(indices, random);
+        List<Integer> indicesToShuffle = new ArrayList<>();
+        shuffleStrategy.shuffleOrder(indicesToShuffle, audioCollection.getNumberOfTracks());
     }
 
     /**
@@ -211,6 +209,9 @@ public class PlayerSource {
         }
     }
 
+    /**
+     * Used to update the Audio File
+     */
    public void updateAudioFile() {
         setAudioFile(audioCollection.getTrackByIndex(index));
     }

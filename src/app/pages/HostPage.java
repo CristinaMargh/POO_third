@@ -39,7 +39,11 @@ public final class HostPage implements Page {
                           .formatted(announcement.getName(), announcement.getDescription()))
                           .toList());
     }
-    public void changePage(Page page) {
+    /**
+     * Used to change the current page to a new one
+     * @param page the page object to set as the next one
+     */
+    public void changePage(final Page page) {
         nextPage = page;
     }
 

@@ -8,14 +8,25 @@ import app.audio.Files.Episode;
 import app.audio.Files.Song;
 import app.player.PlayerStats;
 import app.searchBar.Filters;
-import app.user.*;
+import app.user.User;
+import app.user.Artist;
+import app.user.UserAbstract;
+import app.user.Host;
+import app.user.Notification;
+import app.user.WrapperUser;
+import app.user.WrapperHost;
+import app.user.WrapperArtist;
+import app.user.EndProgramOutput;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import fileio.input.CommandInput;
 
-import java.util.*;
-import java.util.stream.Collectors;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Comparator;
+import java.util.Map;
+import java.util.HashMap;
 
 /**
  * The type Command runner.
@@ -26,6 +37,7 @@ public final class CommandRunner {
      */
     private static ObjectMapper objectMapper = new ObjectMapper();
     private static Admin admin;
+    private static final int LIMIT = 5;
 
     /**
      * Update admin.
@@ -700,6 +712,12 @@ public final class CommandRunner {
 
         return objectNode;
     }
+
+    /**
+     * Used by a user to move to the previous page in the Page System
+     * @param commandInput is used to get username, timestamp, command's name
+     * @return the object node with the specific message
+     */
     public static ObjectNode previousPage(final CommandInput commandInput) {
         String message = admin.previousPage(commandInput);
         ObjectNode objectNode = objectMapper.createObjectNode();
@@ -710,6 +728,11 @@ public final class CommandRunner {
 
         return objectNode;
     }
+    /**
+     * Used by a user to move to the next page in the Page System
+     * @param commandInput is used to get username, timestamp, command's name
+     * @return the object node with the specific message
+     */
     public static ObjectNode nextPage(final CommandInput commandInput) {
         String message = admin.nextPage(commandInput);
         ObjectNode objectNode = objectMapper.createObjectNode();
@@ -804,10 +827,16 @@ public final class CommandRunner {
         return objectNode;
     }
 
+    /**
+     * Used to subscribe to a specific artist
+     * @param commandInput the command input
+     * @return the object node
+     */
+
     public static ObjectNode subscribe(final CommandInput commandInput) {
         ObjectNode objectNode = objectMapper.createObjectNode();
         User user = admin.getUser(commandInput.getUsername());
-        String message ;
+        String message;
         if (user != null) {
             message = user.subscribe(commandInput);
         } else {
@@ -819,6 +848,12 @@ public final class CommandRunner {
         objectNode.put("message", message);
         return objectNode;
     }
+
+    /**
+     * Used to get the notifications from a specific user
+     * @param commandInput the command input
+     * @return the list of notifications
+     */
     public static ObjectNode getNotifications(final CommandInput commandInput) {
         ObjectNode objectNode = objectMapper.createObjectNode();
         objectNode.put("command", commandInput.getCommand());
@@ -830,10 +865,16 @@ public final class CommandRunner {
         notifications.clear();
         return objectNode;
     }
-    public static ObjectNode buyMerch(final CommandInput commandInput){
+
+    /**
+     * Used for the buy merch command
+     * @param commandInput the command input
+     * @return the object node
+     */
+    public static ObjectNode buyMerch(final CommandInput commandInput) {
         ObjectNode objectNode = objectMapper.createObjectNode();
         User user = admin.getUser(commandInput.getUsername());
-        String message ;
+        String message;
         if (user != null) {
             message = user.buyMerch(commandInput);
         } else {
@@ -845,6 +886,12 @@ public final class CommandRunner {
         objectNode.put("message", message);
         return objectNode;
     }
+
+    /**
+     * Used to see the merch of an artist
+     * @param commandInput the command input used to get the command, username, timestamp
+     * @return the names of the merch
+     */
     public static ObjectNode seeMerch(final CommandInput commandInput) {
         ObjectNode objectNode = objectMapper.createObjectNode();
         objectNode.put("command", commandInput.getCommand());
@@ -855,6 +902,12 @@ public final class CommandRunner {
         objectNode.put("result", objectMapper.valueToTree(results));
         return objectNode;
     }
+
+    /**
+     * Used to update recommendations for a specific user
+     * @param commandInput is used for the current timestamp, username and command's name
+     * @return the object node with the specific message
+     */
     public static ObjectNode updateRecommendations(final CommandInput commandInput) {
         ObjectNode objectNode = objectMapper.createObjectNode();
         objectNode.put("command", commandInput.getCommand());
@@ -870,6 +923,13 @@ public final class CommandRunner {
         objectNode.put("message", message);
         return objectNode;
     }
+
+    /**
+     * Used to load in the player the recommendation for a specific user
+     * @param commandInput is used to take the current timestamp, username and command's name
+     * @return the object node with the message which specifies if the current recommendation
+     * was loaded successfully
+     */
     public static ObjectNode loadRecommendations(final CommandInput commandInput) {
         ObjectNode objectNode = objectMapper.createObjectNode();
         objectNode.put("command", commandInput.getCommand());
@@ -886,6 +946,13 @@ public final class CommandRunner {
         return objectNode;
     }
 
+    /**
+     * Summarizes the information for each type of user, using the WrappedUser,
+     * WrappedArtist and WrappedHost implemented classes.
+     * @param commandInput used to find the command's name, username, timestamp
+     * @return an object node with the specific statistic for normal user, artist or host
+     */
+
 public static ObjectNode wrapped(final CommandInput commandInput) {
     ObjectNode objectNode = objectMapper.createObjectNode();
     ObjectNode resultNode = objectMapper.createObjectNode();
@@ -893,7 +960,7 @@ public static ObjectNode wrapped(final CommandInput commandInput) {
     objectNode.put("user", commandInput.getUsername());
     objectNode.put("timestamp", commandInput.getTimestamp());
     // used so we can take the last loaded source
-    for (User user : admin.getUsers()){
+    for (User user : admin.getUsers()) {
         if (user.getCopy() != null) {
             user.listening(commandInput);
             user.setCopy(null);
@@ -916,7 +983,7 @@ public static ObjectNode wrapped(final CommandInput commandInput) {
                     .reversed()
                     .thenComparing(Artist::getUsername));
 
-            int countArtists = Math.min(5, topArtists.size());
+            int countArtists = Math.min(LIMIT, topArtists.size());
 
             for (int i = 0; i < countArtists; i++) {
                 Artist artist = topArtists.get(i);
@@ -930,7 +997,7 @@ public static ObjectNode wrapped(final CommandInput commandInput) {
             ObjectNode topGenreNode = objectMapper.createObjectNode();
             List<String> topGenreUser = wrapperUser.getTopGenre();
 
-            int countGenres = Math.min(5, topGenreUser.size());
+            int countGenres = Math.min(LIMIT, topGenreUser.size());
 
             for (int i = 0; i < countGenres; i++) {
                 String genre = topGenreUser.get(i);
@@ -962,7 +1029,7 @@ public static ObjectNode wrapped(final CommandInput commandInput) {
 
             int count = 0;
             for (Map.Entry<String, Integer> entry : sortedList) {
-                if (count >= 5) {
+                if (count >= LIMIT) {
                     break;
                 }
                 topSongsNode.put(entry.getKey(), entry.getValue());
@@ -977,7 +1044,7 @@ public static ObjectNode wrapped(final CommandInput commandInput) {
                     .reversed()
                     .thenComparing(Album::getName));
 
-            int countAlbums = Math.min(5, topAlbums.size());
+            int countAlbums = Math.min(LIMIT, topAlbums.size());
 
             for (int i = 0; i < countAlbums; i++) {
                 Album album = topAlbums.get(i);
@@ -1001,9 +1068,8 @@ public static ObjectNode wrapped(final CommandInput commandInput) {
                 resultNode.set("topSongs", topSongsNode);
                 resultNode.set("topAlbums", topAlbumsNode);
                 resultNode.set("topEpisodes", topEpisodesNode);
-            }
-            else {
-                objectNode.put("message", "No data to show for user " + user.getUsername() + "." );
+            } else {
+                objectNode.put("message", "No data to show for user " + user.getUsername() + ".");
                 return  objectNode;
             }
         }
@@ -1026,7 +1092,7 @@ public static ObjectNode wrapped(final CommandInput commandInput) {
 
             int countAlbums = 0;
             for (Album album : topAlbums) {
-                if (album.getNumberOfListens() != 0 && countAlbums < 5) {
+                if (album.getNumberOfListens() != 0 && countAlbums < LIMIT) {
                     topAlbumsNode.put(album.getName(), album.getNumberOfListens());
                     countAlbums++;
                 }
@@ -1056,7 +1122,7 @@ public static ObjectNode wrapped(final CommandInput commandInput) {
 
             int count = 0;
             for (Map.Entry<String, Integer> entry : sortedList) {
-                if (count >= 5) {
+                if (count >= LIMIT) {
                     break;
                 }
                 topSongsNode.put(entry.getKey(), entry.getValue());
@@ -1085,8 +1151,9 @@ public static ObjectNode wrapped(final CommandInput commandInput) {
             ObjectNode topEpisodeNode = objectMapper.createObjectNode();
             List<Episode> topEpisode = wrapperHost.getTopEpisodes();
             for (Episode episode : topEpisode) {
-                    if(episode.getListens() != 0)
+                    if (episode.getListens() != 0) {
                         topEpisodeNode.put(episode.getName(), episode.getListens());
+                    }
             }
             resultNode.set("topEpisodes", topEpisodeNode);
             resultNode.put("listeners", 1);
@@ -1095,7 +1162,13 @@ public static ObjectNode wrapped(final CommandInput commandInput) {
     objectNode.set("result", resultNode);
     return objectNode;
 }
-    public static ObjectNode buyPremium(CommandInput commandInput){
+
+    /**
+     * Used for the buy premium command, specific to a user
+     * @param commandInput the command input
+     * @return the object node
+     */
+    public static ObjectNode buyPremium(final CommandInput commandInput) {
         ObjectNode objectNode = objectMapper.createObjectNode();
         objectNode.put("command", commandInput.getCommand());
         objectNode.put("user", commandInput.getUsername());
@@ -1110,7 +1183,13 @@ public static ObjectNode wrapped(final CommandInput commandInput) {
         objectNode.put("message", message);
         return objectNode;
     }
-    public static ObjectNode cancelPremium(CommandInput commandInput){
+
+    /**
+     * Used to cancel premium for a user
+     * @param commandInput the command input used to get the command's name, username and timestamp
+     * @return the object node
+     */
+    public static ObjectNode cancelPremium(final CommandInput commandInput) {
         ObjectNode objectNode = objectMapper.createObjectNode();
         objectNode.put("command", commandInput.getCommand());
         objectNode.put("user", commandInput.getUsername());
@@ -1126,14 +1205,17 @@ public static ObjectNode wrapped(final CommandInput commandInput) {
         return objectNode;
     }
 
-
+    /**
+     * Used to show the statistics from the end of the program
+     * @return the results in a new object node
+     */
     public static ObjectNode endProgram() {
     ObjectNode objectNode = objectMapper.createObjectNode();
     ObjectNode resultNode = objectMapper.createObjectNode();
 
-    List<endProgramOutput> endProgramList = admin.endProgram();
+    List<EndProgramOutput> endProgramList = admin.endProgram();
 
-    for (endProgramOutput endProgram : endProgramList) {
+    for (EndProgramOutput endProgram : endProgramList) {
         ObjectNode artistNode = objectMapper.createObjectNode();
         artistNode.put("merchRevenue", endProgram.getMerchRevenue());
         artistNode.put("songRevenue", endProgram.getSongRevenue());

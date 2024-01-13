@@ -7,9 +7,27 @@ import app.audio.Collections.Podcast;
 import app.audio.Files.AudioFile;
 import app.audio.Files.Episode;
 import app.audio.Files.Song;
-import app.pages.*;
+//import app.pages.*;
+import app.pages.PageFactory;
+import app.pages.HostPage;
+import app.pages.ArtistPage;
+import app.pages.HomePage;
+import app.pages.LikedContentPage;
+import app.pages.NextPage;
+import app.pages.PreviousPage;
+import app.pages.Command;
 import app.player.Player;
-import app.user.*;
+
+import app.user.User;
+import app.user.UserAbstract;
+import app.user.Host;
+import app.user.Artist;
+import app.user.ContentCreator;
+import app.user.EndProgramOutput;
+import app.user.Event;
+import app.user.Merchandise;
+import app.user.Announcement;
+
 import app.user.Notification;
 import fileio.input.CommandInput;
 import fileio.input.EpisodeInput;
@@ -17,14 +35,23 @@ import fileio.input.PodcastInput;
 import fileio.input.SongInput;
 import fileio.input.UserInput;
 import lombok.Getter;
-import lombok.Setter;
 
-import java.util.*;
+import java.util.Objects;
+import java.util.List;
+import java.util.ArrayList;
+import java.util.Set;
+import java.util.HashSet;
+import java.util.Arrays;
+import java.util.Map;
+import java.util.Comparator;
+import java.util.HashMap;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
-import static app.pages.PageFactory.PageType.*;
-
+import static app.pages.PageFactory.PageType.HOME;
+import static app.pages.PageFactory.PageType.ARTIST;
+import static app.pages.PageFactory.PageType.LIKE;
+import static app.pages.PageFactory.PageType.HOST;
 /**
  * The type Admin.
  */
@@ -96,13 +123,6 @@ public final class Admin {
                     songInput.getReleaseYear(), songInput.getArtist()));
         }
     }
-    public List<Episode> getAllEpisodes(){
-        List<Episode> all = new ArrayList<>();
-        for(Host host : hosts)
-            all.addAll(host.getAllEpisodes());
-        return all;
-    }
-
     /**
      * Sets podcasts.
      *
@@ -232,6 +252,12 @@ public final class Admin {
         users.forEach(user -> user.simulateTime(elapsed));
     }
 
+    /**
+     * Used to obtain a certain Abstract user
+     * @param username is the user's username
+     * @return the user whose username is specified as a parameter
+     */
+
     public UserAbstract getAbstractUser(final String username) {
         ArrayList<UserAbstract> allUsers = new ArrayList<>();
 
@@ -297,6 +323,12 @@ public final class Admin {
         return deleteArtist((Artist) currentUser);
     }
 
+    /**
+     * Used to delete a normal user
+     * @param user the user we want to delete
+     * @return a corresponding message which indicates if the operations was a success
+     */
+
     private String deleteNormalUser(final User user) {
         if (user.getPlaylists().stream().anyMatch(playlist -> users.stream().map(User::getPlayer)
                 .filter(player -> player != user.getPlayer())
@@ -317,6 +349,12 @@ public final class Admin {
         return "%s was successfully deleted.".formatted(user.getUsername());
     }
 
+    /**
+     * Used to delete a host
+     * @param host the host we want to delete
+     * @return a corresponding message which indicates if the host was deleted or not
+     */
+
     private String deleteHost(final Host host) {
         if (host.getPodcasts().stream().anyMatch(podcast -> getAudioCollectionsStream()
                 .anyMatch(collection -> collection == podcast))
@@ -329,6 +367,11 @@ public final class Admin {
 
         return "%s was successfully deleted.".formatted(host.getUsername());
     }
+    /**
+     * Used to delete an artist
+     * @param artist the artist we want to delete
+     * @return a corresponding message which indicates if the artist was deleted or not
+     */
 
     private String deleteArtist(final Artist artist) {
         if (artist.getAlbums().stream().anyMatch(album -> album.getSongs().stream()
@@ -613,6 +656,12 @@ public final class Admin {
         return "%s deleted the event successfully.".formatted(username);
     }
 
+    /**
+     * Used to check the event's date validity
+     * @param date the string we are checking
+     * @return true if the date is valid, or false otherwise
+     */
+
     private boolean checkDate(final String date) {
         if (date.length() != dateStringLength) {
             return false;
@@ -759,35 +808,20 @@ public final class Admin {
         if (!user.isStatus()) {
             return "%s is offline.".formatted(user.getUsername());
         }
-//        switch (nextPage) {
-//            case "Home" :
-//                user.setCurrentPage(user.getHomePage());
-//                break;
-//            case "LikedContent" :
-//                user.setCurrentPage(user.getLikedContentPage());
-//                break;
-//            case "Artist" :
-//                user.setCurrentPage(user.getArtistPage());
-//                break;
-//            case "Host" :
-//                user.setCurrentPage(user.getHostPage());
-//                break;
-//            default :
-//                return "%s is trying to access a non-existent page.".formatted(username);
-//        }
-        PageFactory pageFactory = new PageFactory();
-
+    // Used Factory design pattern
         switch (nextPage) {
             case "Home" :
                 HomePage homePage = (HomePage) PageFactory.createPage(HOME, user);
                 user.setCurrentPage(homePage);
                 break;
             case "LikedContent" :
-                LikedContentPage likedContentPage = (LikedContentPage) PageFactory.createPage(LIKE, user);
+                LikedContentPage likedContentPage = (LikedContentPage) PageFactory.createPage(LIKE,
+                        user);
                 user.setCurrentPage(likedContentPage);
                 break;
             case "Artist" :
-                ArtistPage artistPage = (ArtistPage) PageFactory.createPage(ARTIST, user.getArtisName());
+                ArtistPage artistPage = (ArtistPage) PageFactory.createPage(ARTIST,
+                        user.getArtisName());
                 user.setCurrentPage(artistPage);
                 break;
             case "Host" :
@@ -804,36 +838,36 @@ public final class Admin {
         return "%s accessed %s successfully.".formatted(username, nextPage);
     }
 
-public String previousPage(CommandInput commandInput) {
+    /**
+     * Used to change to the previous page in the page List
+     * @param commandInput used to take the username
+     * @return a message which indicates if the page was changed to the previous one
+     */
+    public String previousPage(final CommandInput commandInput) {
     String username = commandInput.getUsername();
     UserAbstract currentUser = getAbstractUser(username);
     User user = (User) currentUser;
 
-//    int currentIndex = user.getHistory().lastIndexOf(user.getCurrentPage());
-//    if (currentIndex <= 0) {
-//        return "There are no pages left to go back.";
-//    }
-//
-//    user.setCurrentPage(user.getPages().get(currentIndex - 1));
-    if (user.getCurrentIndex() <= 0)
+    if (user.getCurrentIndex() <= 0) {
         return "There are no pages left to go back.";
+    }
     Command previousCommand = new PreviousPage(user);
     previousCommand.execute();
     return "The user " + username + " has navigated successfully to the previous page.";
 }
-
-    public String nextPage(CommandInput commandInput) {
+    /**
+     * Used to change to the next page in the page List
+     * @param commandInput used to take the username
+     * @return a message which indicates if the page was changed to the next one
+     */
+    public String nextPage(final CommandInput commandInput) {
         String username = commandInput.getUsername();
         UserAbstract currentUser = getAbstractUser(username);
         User user = (User) currentUser;
 
-//        int currentIndex = user.getHistory().lastIndexOf(user.getCurrentPage());
-//        if (currentIndex >= user.getPages().size() - 1) {
-//            return "There are no pages left to go forward.";
-//        }
-//        user.setCurrentPage(user.getPages().get(currentIndex + 1));
-        if(user.getCurrentIndex() >= user.getPages().size() - 1)
+        if (user.getCurrentIndex() >= user.getPages().size() - 1) {
             return "There are no pages left to go forward.";
+        }
         Command nextCommand = new NextPage(user);
         nextCommand.execute();
 
@@ -862,10 +896,6 @@ public String previousPage(CommandInput commandInput) {
         }
 
         return user.getCurrentPage().printCurrentPage();
-//        Page currentPage = PageFactory.createPage(user.getCurrentPageType(), user);
-//        if(currentPage != null)
-//        return currentPage.printCurrentPage();
-//        else return null;
     }
 
     /**
@@ -985,8 +1015,13 @@ public String previousPage(CommandInput commandInput) {
         return topPlaylists;
     }
 
-public ArrayList<endProgramOutput> endProgram() {
-    ArrayList<endProgramOutput> endProgramOutputs = new ArrayList<>();
+    /**
+     * Used for the final statistic
+     * @return a list with the results in the endProgramOutput format.
+     */
+
+public ArrayList<EndProgramOutput> endProgram() {
+    ArrayList<EndProgramOutput> endProgramOutputs = new ArrayList<>();
     List<Artist> sortedArtists = artists.stream()
             .filter(artist -> (artist.getLoadsNumber() != 0) || (artist.getMerchRevenue() != 0))
             .sorted(Comparator.comparingDouble(Artist::getMerchRevenue).reversed()
@@ -996,7 +1031,7 @@ public ArrayList<endProgramOutput> endProgram() {
     for (int i = 0; i < sortedArtists.size(); i++) {
         Artist artist = sortedArtists.get(i);
         artist.setRank(i + 1);
-        endProgramOutputs.add(new endProgramOutput(artist));
+        endProgramOutputs.add(new EndProgramOutput(artist));
     }
     return endProgramOutputs;
 }

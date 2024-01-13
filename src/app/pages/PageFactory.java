@@ -1,6 +1,9 @@
 package app.pages;
 
-import app.user.*;
+import app.user.UserAbstract;
+import app.user.Artist;
+import app.user.User;
+import app.user.Host;
 
 public class PageFactory {
         public enum PageType {
@@ -9,11 +12,19 @@ public class PageFactory {
             ARTIST,
             HOST
         }
-        public PageFactory(){}
+        public PageFactory() {
 
-        public static  Page createPage(PageType type, UserAbstract user) {
+        }
+
+    /**
+     * Used to create a Page
+     * @param type is the type of the page we are creating
+     * @param user the user for who we are creating the page
+     * @return the created page
+     */
+        public static  Page createPage(final PageType type, final UserAbstract user) {
             if (type != null)
-            return switch (type) {
+                return switch (type) {
                 case LIKE -> new LikedContentPage((User) user);
                 case HOME -> new HomePage((User) user);
                 case ARTIST -> new ArtistPage((Artist) user);
@@ -21,5 +32,4 @@ public class PageFactory {
             };
             return null;
         }
-
-}
+    }

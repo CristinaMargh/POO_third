@@ -8,11 +8,16 @@ import java.util.ArrayList;
 import java.util.List;
 
 @Getter
-public class WrapperArtist {
-    List<Album> topAlbums = new ArrayList<>();
-    List<Song> topSongs = new ArrayList<>();
-    List<UserAbstract> topFans = new ArrayList<>();
-    public void wrapperArtist(Artist artist) {
+public final class WrapperArtist {
+    private List<Album> topAlbums = new ArrayList<>();
+    private List<Song> topSongs = new ArrayList<>();
+    private List<UserAbstract> topFans = new ArrayList<>();
+
+    /**
+     * Used for the artist's statistics
+     * @param artist the artist for whom we are performing these charts
+     */
+    public void wrapperArtist(final Artist artist) {
         this.topAlbums = artist.getAlbums();
         this.topSongs = artist.getListenedSongs();
         this.topFans = artist.getFans();

@@ -6,7 +6,6 @@ import app.audio.LibraryEntry;
 import app.utils.Enums;
 import lombok.Getter;
 
-import javax.xml.transform.Source;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -36,7 +35,7 @@ public final class Player {
         this.repeatMode = Enums.RepeatMode.NO_REPEAT;
         this.paused = true;
     }
-    public Player (PlayerSource source, String type){
+    public Player (final PlayerSource source, final String type) {
         this.source = source;
         this.type = type;
     }

@@ -1,12 +1,19 @@
 package app.user;
 
 import app.Admin;
-import app.audio.Collections.*;
+import app.audio.Collections.Playlist;
+import app.audio.Collections.Podcast;
+import app.audio.Collections.Album;
+import app.audio.Collections.PlaylistOutput;
+import app.audio.Collections.AudioCollection;
 import app.audio.Files.AudioFile;
 import app.audio.Files.Episode;
 import app.audio.Files.Song;
 import app.audio.LibraryEntry;
-import app.pages.*;
+import app.pages.Page;
+import app.pages.HomePage;
+import app.pages.LikedContentPage;
+import app.pages.PageFactory;
 import app.player.Player;
 import app.player.PlayerStats;
 import app.searchBar.Filters;
@@ -15,8 +22,11 @@ import app.utils.Enums;
 import fileio.input.CommandInput;
 import lombok.Getter;
 import lombok.Setter;
-
-import java.util.*;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.LinkedList;
+import java.util.Optional;
+import java.util.Random;
 
 /**
  * The type User.
@@ -40,9 +50,6 @@ public final class User extends UserAbstract {
     @Getter
     @Setter
     private Page currentPage;
-    @Getter
-    private PageFactory.PageType currentPageType;
-    @Getter
     @Setter
     private HomePage homePage;
     @Getter
@@ -115,13 +122,20 @@ public final class User extends UserAbstract {
     @Setter
     private PageFactory currentPageFactory;
 
-    public void nextPage(){
+    /**
+     * Used to allow the user to move to the next page in the list of pages.
+     */
+    public void nextPage() {
         if (currentIndex < pages.size() - 1) {
             currentIndex++;
             currentPage = pages.get(currentIndex);
         }
     }
-    public void previousPage(){
+
+    /**
+     * Used to allow the user to move to the previous page in the page system.
+     */
+    public void previousPage() {
         if (currentIndex > 0) {
             currentIndex--;
             currentPage = pages.get(currentIndex);
@@ -139,7 +153,8 @@ public final class User extends UserAbstract {
      * @param type    the type
      * @return the array list
      */
-    public ArrayList<String> search(final Filters filters, final String type, CommandInput commandInput) {
+    public ArrayList<String> search(final Filters filters, final String type,
+                                    final CommandInput commandInput) {
         searchBar.clearSelection();
 
         listening(commandInput);
@@ -155,9 +170,11 @@ public final class User extends UserAbstract {
                     episode.setListens(episode.getListens() + 1);
                     getListenedEpisodes().add(episode);
                     for (Episode episode1 : podcast.getEpisodes()) {
-                        if (!episode1.equals(episode))
+                        if (!episode1.equals(episode)) {
                             episode1.setListens(episode1.getListens() + 1);
-                        else break;
+                        } else {
+                            break;
+                        }
                     }
                 }
             }
@@ -206,7 +223,12 @@ public final class User extends UserAbstract {
 
         return results;
     }
-    public void listening(CommandInput commandInput) {
+
+    /**
+     * Used to set the number of listens for songs, albums and artists
+     * @param commandInput is used to get the current timestamp in order to find the remained time
+     */
+    public void listening(final CommandInput commandInput) {
         Song songSearched = null;
         if (copy != null && copy.getSource() != null && copy.getType().equals("song")) {
             songSearched = (Song) copy.getCurrentAudioFile();
@@ -254,7 +276,7 @@ public final class User extends UserAbstract {
         if (copy != null && copy.getSource() != null && copy.getType().equals("album")) {
             album = (Album) copy.getCurrentAudioCollection();
             getTopAlbums().add(album);
-            if (album != null)
+            if (album != null) {
                 for (Song song : album.getSongs()) {
                     // listens for the current song
                     if (copy.getCurrentAudioFile() != null
@@ -276,6 +298,7 @@ public final class User extends UserAbstract {
                         }
                     }
                 }
+            }
             // Iterate through all artists
             for (Artist artist : Admin.getInstance().getArtists()) {
                 // find the artist which has the album
@@ -292,7 +315,6 @@ public final class User extends UserAbstract {
                             for (Song listenedSong : getListenedSongs()) {
                                 if (listenedSong.getName().equals(song.getName())
                                         && !listenedSong.getAlbum().equals(song.getAlbum())
-                                    //&& !listenedSong.getGenre().equals(song.getGenre()) && !listenedSong.getTags().equals(song.getTags())
                                 ) {
                                     existingSong = listenedSong;
                                     break;
@@ -363,7 +385,7 @@ public final class User extends UserAbstract {
      *
      * @return the string
      */
-    public String load(CommandInput commandInput) {
+    public String load(final CommandInput commandInput) {
         if (!status) {
             return "%s is offline.".formatted(getUsername());
         }
@@ -417,17 +439,17 @@ public final class User extends UserAbstract {
 
         return "Playback loaded successfully.";
     }
+
+    /**
+     * Used to load the recommended source in player
+     * @return a message which indicates if the playback was loaded
+     */
     public String loadRecommendation() {
         if (!status) {
             return "%s is offline.".formatted(getUsername());
         }
         if (songRecommendation != null && !songRecommendation.isEmpty()) {
             player.setSource(songRecommendation.get(0), "song");
-//            for (Artist artist : Admin.getInstance().getArtists())
-//                if (artist.getUsername().equals(songRecommendation.get(0).getArtist())) {
-//                    int number = artist.getLoadsNumber();
-//                    artist.setLoadsNumber(number + 1);
-               // }
             player.pause();
             return "Playback loaded successfully.";
         } else {
@@ -854,6 +876,13 @@ public final class User extends UserAbstract {
         }
         player.simulatePlayer(time);
     }
+
+    /**
+     * Used by user to subscribe to a specific artist
+     * @param commandInput used to get the username for the one who subscribes
+     * @return a string with the message which indicates if the user subscribed to an artist or
+     * unsubscribed from him successfully.
+     */
     public String subscribe(CommandInput commandInput) {
         ContentCreator selection = searchBar.getLastContentCreatorSelected();
         UserAbstract userAbstract = Admin.getInstance().getAbstractUser(commandInput.getUsername());
@@ -872,6 +901,12 @@ public final class User extends UserAbstract {
         }
         return "To subscribe you need to be on the page of an artist or host.";
     }
+
+    /**
+     * Used to indicate the moment when a user buys some merch
+     * @param commandInput is used to get the merch name.
+     * @return a string with the corresponding message, analyzing the error cases too.
+     */
     public String buyMerch(CommandInput commandInput) {
         ContentCreator selection = searchBar.getLastContentCreatorSelected();
         if ((!searchBar.getLastSearchType().equals("artist")))
@@ -890,12 +925,23 @@ public final class User extends UserAbstract {
             return "The merch " + commandInput.getName() + " doesn't exist.";
         }
     }
+
+    /**
+     * Used to display the names of the bought merch for a user.
+     * @return the list with the names.
+     */
     public List<String> seeMerch() {
         List<String> merchNames = new ArrayList<>();
         for (Merchandise merchandise : boughtMerch)
             merchNames.add(merchandise.getName());
         return merchNames;
     }
+
+    /**
+     * Used to update recommendations for a specific user
+     * @param commandInput used to get the username
+     * @return a string with the message which indicates if the recommendations were updated.
+     */
     public String updateRecommendation(CommandInput commandInput) {
         if (commandInput.getRecommendationType().equals("random_song")) {
             int remain = this.getPlayerStats().getRemainedTime();
@@ -903,7 +949,8 @@ public final class User extends UserAbstract {
             Random random = null;
 
             for (Song song : Admin.getInstance().getSongs()) {
-                if (this.getPlayer().getSource().getAudioFile().getName().equals(song.getName()) && song.getDuration() - remain >= 30) {
+                if (this.getPlayer().getSource().getAudioFile().getName().equals(song.getName())
+                        && song.getDuration() - remain >= 30) {
                     ourSong = song;
                     random = new Random(song.getDuration() - remain);
                     break;
@@ -931,11 +978,18 @@ public final class User extends UserAbstract {
             for (Song song : Admin.getInstance().getSongs())
                 if (song.getName().equals(this.getPlayer().getSource().getAudioFile().getName())) {
                     currentSong = song;
-                    playlistsRecommendationName.add(currentSong.getArtist() + " Fan Club recommendations");
+                    playlistsRecommendationName.add(currentSong.getArtist()
+                            + " Fan Club recommendations");
                 }
         }
-        return "The recommendations for user " + this.getUsername()+ " have been updated successfully.";
+        return "The recommendations for user " + this.getUsername()
+                + " have been updated successfully.";
     }
+
+    /**
+     * Used for the buyPremium command, to update the list of premium users.
+     * @return the message which indicates if a user is now premium.
+     */
     public String buyPremium() {
         List<User> premiumUsers = Admin.getInstance().getPremiumUsers();
         if (premiumUsers.contains(this)) {
@@ -947,9 +1001,10 @@ public final class User extends UserAbstract {
     }
 
     public String cancelPremium() {
-    if (Admin.getInstance().getPremiumUsers().contains(this))
+    if (Admin.getInstance().getPremiumUsers().contains(this)) {
         return  this.getUsername() + " cancelled the subscription successfully.";
-    else return this.getUsername() + " is not a premium user.";
+    } else {
+        return this.getUsername() + " is not a premium user.";
+        }
     }
-
 }
