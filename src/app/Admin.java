@@ -57,7 +57,7 @@ import static app.pages.PageFactory.PageType.HOST;
  */
 public final class Admin {
     @Getter
-    private List<User> users = new ArrayList<>();
+    private final List<User> users = new ArrayList<>();
     @Getter
     private List<Artist> artists = new ArrayList<>();
     @Getter
@@ -437,15 +437,7 @@ public final class Admin {
                                                 username,
                                                 newSongs,
                                                 commandInput.getReleaseYear()));
-        currentArtist.getNewAlbums().add(new Album(albumName,
-                commandInput.getDescription(),
-                username,
-                newSongs,
-                commandInput.getReleaseYear()));
-
-        // I iterate through all user and if one of them is following
-        // this artist I have to notify him
-
+        // I iterate through all users and make a notification about the new appeared album.
         for (User user : users) {
             List<Notification> notifications = user.getNotifications();
             for (ContentCreator contentCreator : user.getCreators()) {
@@ -615,6 +607,7 @@ public final class Admin {
         currentArtist.getEvents().add(new Event(eventName,
                                                 commandInput.getDescription(),
                                                 commandInput.getDate()));
+        // I iterate through all users and make a notification about the new appeared event.
         for (User user : users) {
             List<Notification> notifications = user.getNotifications();
             for (ContentCreator contentCreator : user.getCreators()) {
@@ -715,6 +708,8 @@ public final class Admin {
         currentArtist.getMerch().add(new Merchandise(commandInput.getName(),
                                                      commandInput.getDescription(),
                                                      commandInput.getPrice()));
+        // I iterate through all users and make a notification about the new appeared merch,
+        // by updating the notifications list.
         for (User user : users) {
             List<Notification> notifications = user.getNotifications();
             for (ContentCreator contentCreator : user.getCreators()) {
@@ -825,16 +820,15 @@ public final class Admin {
                 user.setCurrentPage(artistPage);
                 break;
             case "Host" :
-               HostPage hostPage = (HostPage) PageFactory.createPage(HOST, user.getHostName());
+                HostPage hostPage = (HostPage) PageFactory.createPage(HOST, user.getHostName());
                 user.setCurrentPage(hostPage);
                 break;
             default :
                 return "%s is trying to access a non-existent page.".formatted(username);
         }
-
+        //Adding the page to the page list and setting the current index for future page navigation
         user.getPages().add(user.getCurrentPage());
         user.setCurrentIndex(user.getPages().size() - 1);
-        user.getHistory().add(user.getCurrentPage());
         return "%s accessed %s successfully.".formatted(username, nextPage);
     }
 
@@ -851,6 +845,7 @@ public final class Admin {
     if (user.getCurrentIndex() <= 0) {
         return "There are no pages left to go back.";
     }
+    // Command pattern
     Command previousCommand = new PreviousPage(user);
     previousCommand.execute();
     return "The user " + username + " has navigated successfully to the previous page.";
@@ -868,6 +863,7 @@ public final class Admin {
         if (user.getCurrentIndex() >= user.getPages().size() - 1) {
             return "There are no pages left to go forward.";
         }
+        // Command pattern
         Command nextCommand = new NextPage(user);
         nextCommand.execute();
 
@@ -1029,6 +1025,7 @@ public ArrayList<EndProgramOutput> endProgram() {
             .toList();
 
     for (int i = 0; i < sortedArtists.size(); i++) {
+        // Ranking
         Artist artist = sortedArtists.get(i);
         artist.setRank(i + 1);
         endProgramOutputs.add(new EndProgramOutput(artist));

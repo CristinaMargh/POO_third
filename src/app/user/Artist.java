@@ -27,9 +27,6 @@ public final class Artist extends ContentCreator {
     private int rank = 1;
     @Getter
     @Setter
-    private List<Album> newAlbums = new ArrayList<>();
-    @Getter
-    @Setter
     private int loadsNumber = 0;
     @Getter
     @Setter
@@ -137,7 +134,6 @@ public final class Artist extends ContentCreator {
 
         return albumOutput;
     }
-
 
     /**
      * Get user type

@@ -35,7 +35,8 @@ public final class Player {
         this.repeatMode = Enums.RepeatMode.NO_REPEAT;
         this.paused = true;
     }
-    public Player (final PlayerSource source, final String type) {
+    // Will be used to create a copy of the player in order to get the last loaded source
+    public Player(final PlayerSource source, final String type) {
         this.source = source;
         this.type = type;
     }

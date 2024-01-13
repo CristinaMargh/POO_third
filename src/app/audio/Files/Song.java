@@ -19,7 +19,7 @@ public final class Song extends AudioFile {
     private final String artist;
     private Integer likes;
     @Setter
-    private Integer listens;
+    private Integer listens; // Used for the wrapped statistics
 
     /**
      * Instantiates a new Song.

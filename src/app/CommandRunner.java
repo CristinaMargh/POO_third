@@ -959,25 +959,27 @@ public static ObjectNode wrapped(final CommandInput commandInput) {
     objectNode.put("command", commandInput.getCommand());
     objectNode.put("user", commandInput.getUsername());
     objectNode.put("timestamp", commandInput.getTimestamp());
-    // used so we can take the last loaded source
+    // used so we can take the last loaded file
     for (User user : admin.getUsers()) {
         if (user.getCopy() != null) {
             user.listening(commandInput);
             user.setCopy(null);
         }
     }
-
+    // Wrapped user
     String ourUser = commandInput.getUsername();
     for (User user : admin.getUsers()) {
-        // Used to find if there are date to be displayed for an user
+        // Used to find if there are date to be displayed for user
         int check = 0;
         if (user.getUsername().equals(ourUser)) {
+            // Found the user for who we will display the statistics
             WrapperUser wrapperUser = new WrapperUser();
             wrapperUser.wrapperUser(user);
 
             ObjectNode topArtistsNode = objectMapper.createObjectNode();
             List<Artist> topArtists = wrapperUser.getTopArtist();
             int loads = 0;
+            // Sorting the top 5 artists, first after the number of listens, then by username
             topArtists.sort(Comparator
                     .comparingInt(Artist::getLoadsNumber)
                     .reversed()
@@ -993,7 +995,7 @@ public static ObjectNode wrapped(final CommandInput commandInput) {
                     topArtistsNode.put(artist.getUsername(), artist.getLoadsNumber() - 1);
                 }
             }
-
+            // top Genre
             ObjectNode topGenreNode = objectMapper.createObjectNode();
             List<String> topGenreUser = wrapperUser.getTopGenre();
 
@@ -1004,9 +1006,10 @@ public static ObjectNode wrapped(final CommandInput commandInput) {
                 topGenreNode.put(genre, loads);
             }
 
-
+//            // Top songs
             ObjectNode topSongsNode = objectMapper.createObjectNode();
             List<Song> topSongs = wrapperUser.getTopSongs();
+            // Used to show the song name and its number of listens
             Map<String, Integer> listensMap = new HashMap<>();
 
             for (Song song : topSongs) {
@@ -1016,16 +1019,11 @@ public static ObjectNode wrapped(final CommandInput commandInput) {
                     listensMap.put(song.getName(), listens);
                 }
             }
-
-            List<Map.Entry<String, Integer>> sortedList = new ArrayList<>(listensMap.entrySet());
-
-            sortedList.sort((entry1, entry2) -> {
-                int compareByListens = entry2.getValue().compareTo(entry1.getValue());
-                if (compareByListens == 0) {
-                    return entry1.getKey().compareTo(entry2.getKey());
-                }
-                return compareByListens;
-            });
+            // Sorting top5 songs by listens, then by name
+            List<Map.Entry<String, Integer>> sortedList = listensMap.entrySet().stream()
+                    .sorted(Map.Entry.<String, Integer>comparingByValue().reversed()
+                            .thenComparing(Map.Entry.comparingByKey()))
+                    .toList();
 
             int count = 0;
             for (Map.Entry<String, Integer> entry : sortedList) {
@@ -1038,7 +1036,7 @@ public static ObjectNode wrapped(final CommandInput commandInput) {
 
             ObjectNode topAlbumsNode = objectMapper.createObjectNode();
             List<Album> topAlbums = wrapperUser.getTopAlbums();
-
+            // Sorting top 5 albums first by the number of listens, then by name
             topAlbums.sort(Comparator
                     .comparingInt(Album::getNumberOfListens)
                     .reversed()
@@ -1053,7 +1051,7 @@ public static ObjectNode wrapped(final CommandInput commandInput) {
                     topAlbumsNode.put(album.getName(), album.getNumberOfListens());
                 }
             }
-
+            // Episodes
             ObjectNode topEpisodesNode = objectMapper.createObjectNode();
             List<Episode> topEpisodes = wrapperUser.getTopEpisodes();
             for (Episode episode : topEpisodes) {
@@ -1062,6 +1060,7 @@ public static ObjectNode wrapped(final CommandInput commandInput) {
                 topEpisodesNode.put(episode.getName(), episode.getListens());
                 }
             }
+            // Checking if there are data to be displayed
             if (check == 1) {
                 resultNode.set("topArtists", topArtistsNode);
                 resultNode.set("topGenres", topGenreNode);
@@ -1082,13 +1081,11 @@ public static ObjectNode wrapped(final CommandInput commandInput) {
 
             ObjectNode topAlbumsNode = objectMapper.createObjectNode();
             List<Album> topAlbums = wrapperArtist.getTopAlbums();
-
-            topAlbums.sort((album1, album2) -> {
-                if (album1.getNumberOfListens() == album2.getNumberOfListens()) {
-                    return album1.getName().compareTo(album2.getName());
-                }
-                return Integer.compare(album2.getNumberOfListens(), album1.getNumberOfListens());
-            });
+            topAlbums.sort(
+                    Comparator.comparing(Album::getNumberOfListens)
+                            .reversed()
+                            .thenComparing(Album::getName)
+            );
 
             int countAlbums = 0;
             for (Album album : topAlbums) {
@@ -1097,7 +1094,6 @@ public static ObjectNode wrapped(final CommandInput commandInput) {
                     countAlbums++;
                 }
             }
-
 
             ObjectNode topSongsNode = objectMapper.createObjectNode();
             List<Song> topSongs = wrapperArtist.getTopSongs();
@@ -1110,15 +1106,10 @@ public static ObjectNode wrapped(final CommandInput commandInput) {
                 }
             }
 
-            List<Map.Entry<String, Integer>> sortedList = new ArrayList<>(listensMap.entrySet());
-
-            sortedList.sort((entry1, entry2) -> {
-                int compareByListens = entry2.getValue().compareTo(entry1.getValue());
-                if (compareByListens == 0) {
-                    return entry1.getKey().compareTo(entry2.getKey());
-                }
-                return compareByListens;
-            });
+            List<Map.Entry<String, Integer>> sortedList = listensMap.entrySet().stream()
+                    .sorted(Map.Entry.<String, Integer>comparingByValue().reversed()
+                            .thenComparing(Map.Entry.comparingByKey()))
+                    .toList();
 
             int count = 0;
             for (Map.Entry<String, Integer> entry : sortedList) {
@@ -1128,7 +1119,6 @@ public static ObjectNode wrapped(final CommandInput commandInput) {
                 topSongsNode.put(entry.getKey(), entry.getValue());
                 count++;
             }
-
 
             ArrayNode topFansArray = objectMapper.createArrayNode();
             List<UserAbstract> topFans = wrapperArtist.getTopFans();
@@ -1143,7 +1133,7 @@ public static ObjectNode wrapped(final CommandInput commandInput) {
             break;
         }
     }
-    // wrapped host
+    // Wrapped host
     for (Host host : admin.getHosts()) {
         if (host.getUsername().equals(ourUser)) {
             WrapperHost wrapperHost = new WrapperHost();
@@ -1216,6 +1206,7 @@ public static ObjectNode wrapped(final CommandInput commandInput) {
     List<EndProgramOutput> endProgramList = admin.endProgram();
 
     for (EndProgramOutput endProgram : endProgramList) {
+        // Setting the output
         ObjectNode artistNode = objectMapper.createObjectNode();
         artistNode.put("merchRevenue", endProgram.getMerchRevenue());
         artistNode.put("songRevenue", endProgram.getSongRevenue());

@@ -23,13 +23,14 @@ public class PageFactory {
      * @return the created page
      */
         public static  Page createPage(final PageType type, final UserAbstract user) {
-            if (type != null)
+            if (type != null) {
                 return switch (type) {
                 case LIKE -> new LikedContentPage((User) user);
                 case HOME -> new HomePage((User) user);
                 case ARTIST -> new ArtistPage((Artist) user);
                 case HOST -> new HostPage((Host) user);
-            };
+                };
+            }
             return null;
         }
     }

@@ -11,7 +11,7 @@ public final class NextPage implements Command {
     }
 
     /**
-     * Used to navigate within a sequence of pages, in this case to the next page
+     * Used to navigate within a sequence of pages, in this case to the next page.
      */
     public void execute() {
         user.nextPage();

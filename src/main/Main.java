@@ -152,6 +152,7 @@ public final class Main {
                 default -> System.out.println("Invalid command " + commandName);
             }
         }
+        // End program statistics at the end
         outputs.add(CommandRunner.endProgram());
         ObjectWriter objectWriter = objectMapper.writerWithDefaultPrettyPrinter();
         objectWriter.writeValue(new File(filePath2), outputs);

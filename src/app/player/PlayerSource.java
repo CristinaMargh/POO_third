@@ -25,7 +25,7 @@ public final class PlayerSource {
     private int remainedDuration;
     private final List<Integer> indices = new ArrayList<>();
     @Setter
-    private ShuffleStrategy shuffleStrategy;
+    private RandomStrategy shuffleStrategy = new RandomStrategy();
 
 
     /**
@@ -178,7 +178,9 @@ public final class PlayerSource {
      */
     public void generateShuffleOrder(final Integer seed) {
         List<Integer> indicesToShuffle = new ArrayList<>();
-        shuffleStrategy.shuffleOrder(indicesToShuffle, audioCollection.getNumberOfTracks());
+        // Strategy pattern
+        shuffleStrategy.normalOrder(indices, audioCollection.getNumberOfTracks());
+        shuffleStrategy.shuffleOrder(indicesToShuffle, audioCollection.getNumberOfTracks(), seed);
     }
 
     /**
